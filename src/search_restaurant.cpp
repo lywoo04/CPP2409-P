@@ -60,6 +60,7 @@ public:
             location[1] = y; 
             }
 
+
     //식당 이름을 반환하는 함수
     string GetRestauName() const {
         return name ;
