@@ -19,6 +19,10 @@ public:
          return name ;
     }
 
+    double getPrice() const {
+        return price;
+    }
+
     //음식의 정보를 출력하는 함수
     void Print_foodInfor() const {
         cout << "이름: " << name << endl 
@@ -32,9 +36,9 @@ public:
     }
 
     //원하는 특징을 음식이 가지고 있는지 확인하는 함수
-    bool HasFeature(const string& desiredFeature) const {
+    bool HasFeature(const string& first_string) const {
         for (const auto& foodFeature : features) {
-            if (desiredFeature == foodFeature) {
+            if (first_string == foodFeature) {
                 return true;
             }
         }
@@ -66,6 +70,23 @@ public:
         return name ;
     }
 
+    float getRating() const {
+        return rating; 
+    }
+
+    double getFoodPrice(const int foodNum) const {
+        if (foodNum == 1)
+            return food1.getPrice();
+        else if (foodNum == 2)
+            return food2.getPrice();
+        else
+            return 0.0;  // 잘못된 입력에 대한 처리
+    }
+
+    const int* getLocation() const {
+        return location;
+    }
+
     //식당 정보를 출력하는 함수
     void Print_infor() const{
         cout << "식당 이름: " << name << endl 
@@ -75,10 +96,10 @@ public:
     }
 
     //식당의 음식 중, 원하는 음식을 선택하여 설명을 출력하는 함수
-    void SelectFood(int foodNum) const {
-        if (foodNum == 1) {
+    void SelectFood(int second_num) const {
+        if (second_num == 1) {
             food1.Print_foodInfor();
-        } else if (foodNum == 2) {
+        } else if (second_num == 2) {
             food2.Print_foodInfor();
         } else {
             cout << "잘못된 입력입니다. 다시 입력해주세요." << endl;
@@ -86,22 +107,27 @@ public:
     }
 
     //음식이 원하는 음식인지 확인하고, 맞으면 이름을 출력하는 함수
-    bool RecommendFood(const string& desiredFeature) const {
-        bool foodFound = false;
+    bool HasRecommendFood(const string& first_string, int print_name = 0) const {
+        bool food_found = false;
         
-        if (food1.HasFeature(desiredFeature)) {
-            cout <<food1.GetFoodName() << endl;
-            foodFound = true;
+        if (food1.HasFeature(first_string) || food1.GetFoodName() == first_string) {
+            if (print_name == 1) {
+                cout <<food1.GetFoodName() << endl;
+            }
+            food_found = true;
         }
         
-        if (food2.HasFeature(desiredFeature)) {
-            cout <<food2.GetFoodName() << endl;
-            foodFound = true;
+        if (food2.HasFeature(first_string) || food2.GetFoodName() == first_string) {
+            if (print_name == 1) {
+                cout <<food2.GetFoodName() << endl;
+            }
+            food_found = true;
         }
         
-        return foodFound;
+        return food_found;
     }
 
+    
 };
 
 //식당, 요리 정보 입력
@@ -117,7 +143,7 @@ const Food speedbanjum_f1("jjajang", 0.4, {"chinese", "pork", "noodle"});
 const Food speedbanjum_f2("jjambbong", 0.5, {"chinese", "spicy", "seafood" ,"noodle"});
 const Restaurant speedbanjum("speedbanjum", speedbanjum_f1, speedbanjum_f2, 4.5, 0,0);
 
-const Food joseon_f1("jjambbong", 0.95, {"chinese", "seafood", "spicy", "noodle"});
+const Food joseon_f1("joseonjjambbong", 0.95, {"chinese", "seafood", "spicy", "noodle"});
 const Food joseon_f2("whitejjambbong",0.95 , {"chinese", "seafood", "spicy", "noodle"});
 const Restaurant joseon("joseonjjambbong", joseon_f1, joseon_f2, 4.6, 0,0);
 
@@ -143,9 +169,9 @@ void DisplayFeatures() {
 }
 
 //원하는 식당의 정보를 출력하는 함수
-void DisplayRestaurant(int restauNum){
-    if (restauNum > 0 && restauNum <= restaurantList.size()) {
-        restaurantList[restauNum - 1].Print_infor();
+void DisplayRestaurant(int first_num){
+    if (first_num > 0 && first_num <= restaurantList.size()) {
+        restaurantList[first_num - 1].Print_infor();
     } else {
         cout << "잘못된 입력입니다. 다시 입력해주세요." << endl;
     }
@@ -164,24 +190,83 @@ void DisplayRestaurantList() {
 }
 
 //음식의 정보를 출력하는 함수
-void DisplayFoodInfo(int restauNum, int foodNum) {
-    if (foodNum == 1 || foodNum == 2) {
-        restaurantList[restauNum - 1].SelectFood(foodNum);
-    } else if (foodNum == 3) {
+void DisplayFoodInfo(int first_num, int second_num) {
+    if (second_num == 1 || second_num == 2) {
+        restaurantList[first_num - 1].SelectFood(second_num);
+    } else if (second_num == 3) {
         cout << "메뉴 종료" << endl;
     } else {
         cout << "잘못된 입력입니다. 다시 입력해주세요." << endl;
     }
 }
 
+// 재귀적으로 우선순위가 높은 항목 출력
+void PrintSortedRestaurants(vector<string>& recommendedRestaurantList, int align, const vector<Restaurant>& restaurantList) {
+    if (recommendedRestaurantList.empty()) {
+        return; 
+    }
+    
+    int bestIndex = 0;
+
+    for (int i = 1; i < recommendedRestaurantList.size(); ++i) {
+        const string& current = recommendedRestaurantList[i];
+        const string& best = recommendedRestaurantList[bestIndex];
+
+        if (align == 1) { // 별점 기준
+            float currentRating = 0, bestRating = 0;
+            for (const auto& restaurant : restaurantList) {
+                if (restaurant.GetRestauName() == current) currentRating = restaurant.getRating();
+                if (restaurant.GetRestauName() == best) bestRating = restaurant.getRating();
+            }
+            if (currentRating > bestRating) bestIndex = i;
+
+        } 
+        else if (align == 2) { // 평균 가격 기준
+            double currentPrice = 0, bestPrice = 0;
+            for (const auto& restaurant : restaurantList) {
+                if (restaurant.GetRestauName() == current) {
+                    currentPrice = (restaurant.getFoodPrice(1) + restaurant.getFoodPrice(1)) / 2;
+                }
+                if (restaurant.GetRestauName() == best) {
+                    bestPrice = (restaurant.getFoodPrice(1) + restaurant.getFoodPrice(1)) / 2;
+                }
+            }
+            if (currentPrice < bestPrice) bestIndex = i;
+
+        } 
+        else if (align == 3) { // 거리 기준
+            int currentDist = 0, bestDist = 0;
+            for (const auto& restaurant : restaurantList) {
+                if (restaurant.GetRestauName() == current) currentDist = restaurant.getLocation()[0];
+                if (restaurant.GetRestauName() == best) bestDist = restaurant.getLocation()[0];
+            }
+            if (currentDist < bestDist) bestIndex = i;
+        }
+        else {
+            return;
+        }
+    }
+
+    // 가장 우선순위가 높은 항목 출력
+    cout << "- " << recommendedRestaurantList[bestIndex] << endl;
+
+    // 해당 항목 제거
+    recommendedRestaurantList.erase(recommendedRestaurantList.begin() + bestIndex);
+
+    // 나머지 항목에 대해 재귀 호출
+    PrintSortedRestaurants(recommendedRestaurantList, align, restaurantList);
+}
+
 int main(){
 
     int num = 1;
     int menu;
-    int restauNum;
-    int foodNum;
-    bool foodFound = false;
-    string desiredFeature;
+    int align;
+    int first_num;
+    int second_num;
+    bool food_found = false;
+    string first_string;
+    vector<string> recommendedRestaurantList;
 
     while(num){
         cout << "----------------------------" << endl;
@@ -190,7 +275,7 @@ int main(){
              << "2. 음식 추천받기" << endl
              << "3. 식당 추천받기" << endl
              << "4. 종료" << endl
-             << "실행할 기능을 선택하세요: ";
+             << "당신의 입력: ";
 
         cin >> menu;
         cout << endl;
@@ -200,47 +285,126 @@ int main(){
                 DisplayRestaurantList();
                 
                 cout << "어떤 식당의 정보를 원하십니까?" << endl
-                     << "번호를 입력하십시오: ";
+                     << "당신의 입력: ";
                 
-                cin >> restauNum;
+                cin >> first_num;
                 cout << endl;
 
-                DisplayRestaurant(restauNum);
+                DisplayRestaurant(first_num);
 
                 cout << "음식 정보를 원하십니까?" << endl 
                      << "1: 1번 음식" << endl
                      << "2: 2번 음식" << endl
                      << "3: 종료" << endl
-                     << "원하는 서비스를 선택하세요: ";
+                     << "당신의 입력: "; 
 
-                cin >> foodNum;
+                cin >> second_num;
                 cout << endl;
 
-                DisplayFoodInfo(restauNum, foodNum);
+                DisplayFoodInfo(first_num, second_num);
 
                 break;
 
             case 2:
                 DisplayFeatures();
-                cout << "원하는 음식의 특징을 입력하십시오: " ;
-                cin >> desiredFeature;
+                cout << "원하는 음식의 특징을 입력하십시오" << endl
+                     << "당신의 입력: ";
+                cin >> first_string;
                 cout << endl;
                 
-                foodFound = false;
+                food_found = false;
                 for (const auto& restaurant : restaurantList) { 
-                    if (restaurant.RecommendFood(desiredFeature)) {
-                        foodFound = true;
+                    if (restaurant.HasRecommendFood(first_string, 1)) {
+                        food_found = true;
                     }
                 }
 
-                if (!foodFound) {
+                if (!food_found) {
                     cout << "특징에 맞는 음식이 없습니다." << endl;
                 }
 
                 break;
             
-            case 3:
-                cout << "아직 미구현" << endl;
+            case 3: //식당 추천
+                cout << "어떤 식당을 추천받고 싶으싶니까?" << endl
+                     << "1. 특정 음식을 파는 식당" << endl
+                     << "2. 원하는 특징의 음식을 파는 식당" << endl
+                     << "당신의 입력: ";
+                cin >> first_num ;
+                cout << endl;
+
+                if (first_num == 1) {
+                    cout << "원하는 음식을 입력하십시오" << endl
+                         << "당신의 입력: ";
+                    cin >> first_string;
+                    cout << endl;
+
+                    // 특정 음식을 찾는 식당 검색
+                    food_found = false;
+                    for (const auto& restaurant : restaurantList) {
+                        if (restaurant.HasRecommendFood(first_string)) {
+                            cout << restaurant.GetRestauName() << "에서 " << first_string 
+                                 << "을(를) 판매합니다." << endl;
+                            food_found = true;
+                        }
+                    }
+                    if (!food_found) {
+                        cout << "해당 음식을 판매하는 식당이 없습니다." << endl;
+                    }
+
+                } else if (first_num == 2) { // 원하는 특징의 음식을 파는 식당 추천
+                    recommendedRestaurantList.clear();
+
+                    DisplayFeatures();
+                    cout << "원하시는 음식의 특징을 입력하십시오:" << endl
+                         << "당신의 입력: ";
+                    cin >> first_string;
+                    cout << endl;
+
+                    // 특징을 기반으로 식당 검색
+                    food_found = false;
+                    for (const auto& restaurant : restaurantList) {
+                        if (restaurant.HasRecommendFood(first_string)) {
+                            recommendedRestaurantList.push_back(restaurant.GetRestauName());
+                            cout << restaurant.GetRestauName() <<  endl;
+                            food_found = true;
+                        }
+                    }
+                    cout << "에서 " << first_string << " 특징을 가진 음식을 판매합니다." << endl;
+
+                    if (food_found){
+                        cout << "새로운 기준에 따라 목록을 정렬하시겠습니까?" << endl
+                             << "1. 별점" << endl 
+                             << "2. 가격" << endl 
+                             << "3. 거리" << endl 
+                             << "4. 아니오" << endl
+                             << "당신의 입력: ";
+                        cin >> align;
+
+                        if (align == 1) cout << "별점이 높은 순으로 정렬합니다." << endl;
+                        else if (align == 2) cout << "평균 가격이 싼 순으로 정렬합니다." << endl;
+                        else if (align == 3) cout << "거리가 가까운 순으로 정렬합니다." << endl;
+                        else if (align == 4) {
+                            cout << "기능 메뉴로 돌아갑니다." << endl;
+                            break;
+                        }
+                        else {
+                            cout << "잘못된 입력입니다." << endl; 
+                            break;
+                        }
+
+                        PrintSortedRestaurants(recommendedRestaurantList, align, restaurantList);
+                        
+                        break;
+                    }
+                    else {
+                        cout << "해당 특징의 음식을 판매하는 식당이 없습니다." << endl;
+                    }
+
+                } else {
+                    cout << "잘못된 입력입니다. 다시 입력해주세요." << endl;
+
+                }
                 break;
 
             case 4:
