@@ -217,7 +217,8 @@ vector<int> InputUserLocate(int max_x, int max_y) {
 }
 
 // 재귀적으로 우선순위가 높은 항목 출력
-void PrintSortedRestaurants(vector<string>& recommendedRestaurantList, int align, const vector<Restaurant>& restaurantList, vector<int> user_locate) {
+void PrintSortedRestaurants(vector<string>& recommendedRestaurantList, int align,
+ const vector<Restaurant>& restaurantList, vector<int> user_locate) {
     if (recommendedRestaurantList.empty()) {
         return; 
     }
