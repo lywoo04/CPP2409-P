@@ -131,25 +131,25 @@ public:
 };
 
 //식당, 요리 정보 입력
-const Food woulmidang_f1("buncha", 1.4, {"Vietnamese", "sour", "noodle"});
-const Food woulmidang_f2("pho", 1.1, {"Vietnamese", "beef", "noodle"});
-const Restaurant woulmidang("woulmidang", woulmidang_f1, woulmidang_f2, 5.0, 0, 0);
+const Food woulmidang_f1("buncha", 1.4, {"vietnamese", "sour", "noodle"});
+const Food woulmidang_f2("pho", 1.1, {"vietnamese", "beef", "noodle"});
+const Restaurant woulmidang("woulmidang", woulmidang_f1, woulmidang_f2, 5.0, 5, 5);
  
-const Food miss420_f1("friedrice", 0.75, {"Vietnamese", "spicy", "rice"});
-const Food miss420_f2("pho", 0.7, {"Vietnamese", "beef", "noodle"});
-const Restaurant miss420("misssaigon", miss420_f1, miss420_f2, 4.2, 0, 0);
+const Food miss420_f1("friedrice", 0.75, {"vietnamese", "spicy", "rice"});
+const Food miss420_f2("pho", 0.7, {"vietnamese", "beef", "noodle"});
+const Restaurant miss420("misssaigon", miss420_f1, miss420_f2, 4.2, 10, 10);
 
 const Food speedbanjum_f1("jjajang", 0.4, {"chinese", "pork", "noodle"});
 const Food speedbanjum_f2("jjambbong", 0.5, {"chinese", "spicy", "seafood" ,"noodle"});
-const Restaurant speedbanjum("speedbanjum", speedbanjum_f1, speedbanjum_f2, 4.5, 0,0);
+const Restaurant speedbanjum("speedbanjum", speedbanjum_f1, speedbanjum_f2, 4.5, 9,9);
 
 const Food joseon_f1("joseonjjambbong", 0.95, {"chinese", "seafood", "spicy", "noodle"});
 const Food joseon_f2("whitejjambbong",0.95 , {"chinese", "seafood", "spicy", "noodle"});
-const Restaurant joseon("joseonjjambbong", joseon_f1, joseon_f2, 4.6, 0,0);
+const Restaurant joseon("joseonjjambbong", joseon_f1, joseon_f2, 4.6, 1,1);
 
 const Food shinsacheon_f1("maratang", 1.3, {"chinese", "spicy", "meat", "vegetable"});
 const Food shinsacheon_f2("guabaorou", 0.9, {"chinese", "sweet", "sour", "pork"});
-const Restaurant shinsacheon("shinsacheon", shinsacheon_f1, shinsacheon_f2, 4.2, 0, 0);
+const Restaurant shinsacheon("shinsacheon", shinsacheon_f1, shinsacheon_f2, 4.2, 5, 5);
 
 //식당 목록 벡터
 vector<Restaurant> restaurantList = {woulmidang, miss420, speedbanjum, joseon,
@@ -200,8 +200,24 @@ void DisplayFoodInfo(int first_num, int second_num) {
     }
 }
 
+// 사용자의 위치를 입력받는 함수
+vector<int> InputUserLocate(int max_x, int max_y) {
+    int user_locateX = 0, user_locateY = 0;
+
+    cout << "현재 위치(x, y)를 입력하십시오(0~10): " << endl;
+    cin >> user_locateX >> user_locateY;
+    if ( 0 <= user_locateX && user_locateX <= max_x &&
+         0 <= user_locateY && user_locateY <= max_y) {
+        return {user_locateX, user_locateY};
+    }
+    else {
+        cout << "잘못된 입력입니다. 다시 입력하십시오." << endl;
+        return InputUserLocate(max_x, max_y);
+    }
+}
+
 // 재귀적으로 우선순위가 높은 항목 출력
-void PrintSortedRestaurants(vector<string>& recommendedRestaurantList, int align, const vector<Restaurant>& restaurantList) {
+void PrintSortedRestaurants(vector<string>& recommendedRestaurantList, int align, const vector<Restaurant>& restaurantList, vector<int> user_locate) {
     if (recommendedRestaurantList.empty()) {
         return; 
     }
@@ -237,8 +253,14 @@ void PrintSortedRestaurants(vector<string>& recommendedRestaurantList, int align
         else if (align == 3) { // 거리 기준
             int currentDist = 0, bestDist = 0;
             for (const auto& restaurant : restaurantList) {
-                if (restaurant.GetRestauName() == current) currentDist = restaurant.getLocation()[0];
-                if (restaurant.GetRestauName() == best) bestDist = restaurant.getLocation()[0];
+                if (restaurant.GetRestauName() == current) {
+                    currentDist = (restaurant.getLocation()[0] - user_locate[0])^2 + 
+                                  (restaurant.getLocation()[1] - user_locate[1])^2 ;
+                } 
+                if (restaurant.GetRestauName() == best) {
+                    bestDist = (restaurant.getLocation()[0] - user_locate[0])^2 + 
+                               (restaurant.getLocation()[1] - user_locate[1])^2;
+                }
             }
             if (currentDist < bestDist) bestIndex = i;
         }
@@ -254,7 +276,7 @@ void PrintSortedRestaurants(vector<string>& recommendedRestaurantList, int align
     recommendedRestaurantList.erase(recommendedRestaurantList.begin() + bestIndex);
 
     // 나머지 항목에 대해 재귀 호출
-    PrintSortedRestaurants(recommendedRestaurantList, align, restaurantList);
+    PrintSortedRestaurants(recommendedRestaurantList, align, restaurantList, user_locate);
 }
 
 int main(){
@@ -267,6 +289,11 @@ int main(){
     bool food_found = false;
     string first_string;
     vector<string> recommendedRestaurantList;
+
+    int max_x = 10, max_y = 10; //임시 맵 최대값
+    vector<int> user_locate; 
+
+    user_locate = InputUserLocate(max_x, max_y);
 
     while(num){
         cout << "----------------------------" << endl;
@@ -393,7 +420,7 @@ int main(){
                             break;
                         }
 
-                        PrintSortedRestaurants(recommendedRestaurantList, align, restaurantList);
+                        PrintSortedRestaurants(recommendedRestaurantList, align, restaurantList, user_locate);
                         
                         break;
                     }
