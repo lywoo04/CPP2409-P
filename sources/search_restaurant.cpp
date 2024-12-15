@@ -108,23 +108,23 @@ public:
 
     //음식이 원하는 음식인지 확인하고, 맞으면 이름을 출력하는 함수
     bool HasRecommendFood(const string& first_string, int print_name = 0) const {
-        bool food_found = false;
+        bool found = false;
         
         if (food1.HasFeature(first_string) || food1.GetFoodName() == first_string) {
             if (print_name == 1) {
                 cout <<food1.GetFoodName() << endl;
             }
-            food_found = true;
+            found = true;
         }
         
         if (food2.HasFeature(first_string) || food2.GetFoodName() == first_string) {
             if (print_name == 1) {
                 cout <<food2.GetFoodName() << endl;
             }
-            food_found = true;
+            found = true;
         }
         
-        return food_found;
+        return found;
     }
 };
 
@@ -182,23 +182,20 @@ int main(){
     int align;
     int first_num;
     int second_num;
-    bool food_found = false;
+    bool found = false;
     string first_string;
     vector<string> recommendedRestaurantList;
 
     int max_x = 10, max_y = 10; //임시 맵 최대값
     vector<int> user_locate; 
 
-
-
-
     while(true){
         cout << "----------------------------" << endl;
         cout << "[기능 메뉴]" << endl
-             << "1. 식당 정보" << endl
-             << "2. 음식 추천받기" << endl
-             << "3. 식당 추천받기" << endl
-             << "4. 지도 보기" << endl
+             << "1. 지도 보기" << endl
+             << "2. 식당 정보" << endl
+             << "3. 음식 추천받기" << endl
+             << "4. 식당 추천받기" << endl
              << "5. 종료" << endl
              << "당신의 입력: ";
 
@@ -207,6 +204,59 @@ int main(){
 
         switch (menu) {
             case 1:
+                user_locate = InputUserLocate(max_x, max_y);
+
+                PrintMap(max_x, max_y, user_locate, restaurantList);
+
+                cout << "원하는 추가 기능 선택" << endl
+                     << "1. 사용자 위치 재설정하기" << endl
+                     << "2. 좌표 검색하기" << endl
+                     << "3. 나가기" << endl
+                     << "당신의 입력: " ;
+                
+                while (true) {
+                    cin >> first_num;
+                    if (first_num != 1 && first_num != 2 && first_num != 3 ){
+                        continue;
+                    }
+                    cout << endl;
+                    break;
+                }
+
+                if (first_num == 1) {
+                    user_locate = InputUserLocate(max_x, max_y);
+                    break;
+                }
+                else if (first_num == 2) {
+                    vector<int> searchLocate;
+                    found = false;
+
+                    cout << "정보를 원하는 ";
+                    searchLocate = InputUserLocate(max_x, max_y);
+                    for (const auto& restaurant : restaurantList) {
+                        if (searchLocate[0] == restaurant.getLocation()[0],
+                            searchLocate[1] == restaurant.getLocation()[1]) {
+                                restaurant.Print_infor();
+                                found = true;
+                        }
+                    }
+                    if (found == false) {
+                        cout << "이 좌표에는 식당이 없습니다." << endl;
+                    }
+                    break;
+                        
+                }
+                else if (first_num == 3) {
+                    cout << "[기능메뉴 4. 지도보기]를 종료합니다" << endl;
+                    break;
+                }
+                else {
+                    cout << "잘못된 입력입니다" << endl;
+                    continue;
+                }
+                
+                break;
+            case 2:
                 DisplayRestaurantList();
                 
                 cout << "어떤 식당의 정보를 원하십니까?" << endl
@@ -243,30 +293,29 @@ int main(){
                         continue;
                     }
                 }
-                
                 break;
 
-            case 2:
+            case 3:
                 DisplayFeatures();
                 cout << "원하는 음식의 특징을 입력하십시오" << endl
                      << "당신의 입력: ";
                 cin >> first_string;
                 cout << endl;
                 
-                food_found = false;
+                found = false;
                 for (const auto& restaurant : restaurantList) { 
                     if (restaurant.HasRecommendFood(first_string, 1)) {
-                        food_found = true;
+                        found = true;
                     }
                 }
 
-                if (!food_found) {
+                if (!found) {
                     cout << "특징에 맞는 음식이 없습니다." << endl;
                 }
 
                 break;
             
-            case 3: //식당 추천
+            case 4: //식당 추천
                 cout << "어떤 식당을 추천받고 싶으싶니까?" << endl
                      << "1. 특정 음식을 파는 식당" << endl
                      << "2. 원하는 특징의 음식을 파는 식당" << endl
@@ -290,15 +339,15 @@ int main(){
                     cout << endl;
 
                     // 특정 음식을 찾는 식당 검색
-                    food_found = false;
+                    found = false;
                     for (const auto& restaurant : restaurantList) {
                         if (restaurant.HasRecommendFood(first_string)) {
                             cout << restaurant.GetRestauName() << "에서 " << first_string 
                                  << "을(를) 판매합니다." << endl;
-                            food_found = true;
+                            found = true;
                         }
                     }
-                    if (!food_found) {
+                    if (!found) {
                         cout << "해당 음식을 판매하는 식당이 없습니다." << endl;
                     }
 
@@ -312,17 +361,17 @@ int main(){
                     cout << endl;
 
                     // 특징을 기반으로 식당 검색
-                    food_found = false;
+                    found = false;
                     for (const auto& restaurant : restaurantList) {
                         if (restaurant.HasRecommendFood(first_string)) {
                             recommendedRestaurantList.push_back(restaurant.GetRestauName());
                             cout << restaurant.GetRestauName() <<  endl;
-                            food_found = true;
+                            found = true;
                         }
                     }
                     cout << "에서 " << first_string << " 특징을 가진 음식을 판매합니다." << endl;
 
-                    if (food_found){
+                    if (found){
                         cout << "새로운 기준에 따라 목록을 정렬하시겠습니까?" << endl
                              << "1. 별점" << endl 
                              << "2. 가격" << endl 
@@ -357,35 +406,7 @@ int main(){
                 }
                 break;
 
-            case 4:
-                user_locate = InputUserLocate(max_x, max_y);
-
-                PrintMap(max_x, max_y, user_locate, restaurantList);
-
-                cout << "원하는 추가 기능 선택" << endl
-                     << "1. 사용자 위치 재설정하기" << endl
-                     << "2. 나가기" << endl
-                     << "당신의 입력: " ;
-                
-                while (true) {
-                    cin >> first_num;
-                    cout << endl;
-
-                    if (first_num == 1) {
-                        user_locate = InputUserLocate(max_x, max_y);
-                        break;
-                    }
-                    else if (first_num == 2) {
-                        cout << "[기능메뉴 4. 지도보기]를 종료합니다" << endl;
-                        break;
-                    }
-                    else {
-                        cout << "잘못된 입력입니다" << endl;
-                        continue;
-                    }
-                }
-                
-                break;
+            
             case 5:
                 cout << "프로그램 종료" ;
                 return 0;
@@ -440,7 +461,7 @@ void DisplayFoodInfo(int first_num, int second_num) {
 vector<int> InputUserLocate(int max_x, int max_y) {
     int user_locateX = 0, user_locateY = 0;
 
-    cout << "현재 위치(x, y)를 입력하십시오(0~10): " << endl;
+    cout << "위치(x, y)를 입력하십시오(0~10): " << endl;
     cin >> user_locateX >> user_locateY;
     if ( 0 <= user_locateX && user_locateX <= max_x &&
          0 <= user_locateY && user_locateY <= max_y) {
@@ -495,7 +516,6 @@ void PrintSortedRestaurants(vector<string>& recommendedRestaurantList, int align
                     user_locate = InputUserLocate(max_x, max_y);
                     cout << endl;
                 }
-                
             }
                 
             int currentDist = 0, bestDist = 0;
@@ -530,19 +550,19 @@ void PrintMap(int max_x, int max_y, vector<int> user_locate, vector<Restaurant>&
     for (int i = 0; i < max_y; i++) {
         cout << "-----------------------------------------" << endl;
         for (int j = 0; j < max_x; j++){
-            bool find = false;
+            bool found = false;
 
             cout << "|" ;
             for (const auto& restaurant : restaurantList){
                 if (restaurant.getLocation()[0] == j && restaurant.getLocation()[1] == i){
-                    find = true;
+                    found = true;
                     break;
                 }
             }
-            if (find == true && user_locate[0] == j && user_locate[1] == i) {
+            if (found == true && user_locate[0] == j && user_locate[1] == i) {
                 cout << "L&U";
             }
-            else if (find == true){
+            else if (found == true){
                 cout << " L "; 
             }
             else if (user_locate[0] == j && user_locate[1] == i) {
